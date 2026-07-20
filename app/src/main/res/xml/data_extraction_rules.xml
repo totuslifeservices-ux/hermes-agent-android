@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Hermes Agent Data Extraction Rules (Android 12+).
+
+  No cloud backup is performed — all data remains on-device.
+  The 'domain' attribute controls whether the system can extract
+  app data via ADB backup / cloud backup. We disable it entirely
+  to protect the local session database and agent state.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

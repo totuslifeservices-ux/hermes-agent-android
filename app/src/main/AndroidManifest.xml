@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ── Hermes Agent for Android ───────────────────────────────────────────
+  AndroidManifest.xml — Target API 36 (Android 16)
+
+  Permission Transparency (Proverbs 4:23 NLT):
+  "Guard your heart above all else, for it determines the course of your life."
+  Every runtime permission is declared with explicit documentation of its
+  purpose. The app operates offline-first with zero third-party tracker SDKs,
+  telemetry, or data harvesting.
+
+  Permissions Reference (2026 Google Play Console compliance):
+  ┌──────────────────────────────┬─────────────────────────────────────────┐
+  │ Permission                   │ Purpose                                 │
+  ├──────────────────────────────┼─────────────────────────────────────────┤
+  │ INTERNET                     │ LLM provider API calls + Web search     │
+  │ ACCESS_NETWORK_STATE         │ Detect connectivity for offline mode    │
+  │ ACCESS_WIFI_STATE            │ WiFi-aware local LLM routing            │
+  │ RECORD_AUDIO                 │ Voice input / STT (faster-whisper)      │
+  │ CAMERA                       │ Camera capture for vision tool          │
+  │ ACCESS_FINE_LOCATION         │ GPS location for LocationTool           │
+  │ ACCESS_COARSE_LOCATION       │ Approximate location for LocationTool   │
+  │ READ_CONTACTS                │ Contact lookup for ContactsTool         │
+  │ READ_SMS                     │ Search SMS messages for SmsTool         │
+  │ SEND_SMS                     │ Send SMS via SmsTool (w/ confirmation)  │
+  │ READ_CALENDAR                │ Read calendar events for CalendarTool   │
+  │ WRITE_CALENDAR               │ Create calendar events                  │
+  │ READ_PHONE_STATE             │ Call log / device info for PhoneTool    │
+  │ POST_NOTIFICATIONS           │ Background agent status notifications   │
+  │ FOREGROUND_SERVICE_DATA_SYNC │ Persistent gateway/agent service        │
+  │ RECEIVE_BOOT_COMPLETED       │ Restart agent service after device boot │
+  │ VIBRATE                      │ Haptic feedback on agent responses      │
+  │ WAKE_LOCK                    │ Keep agent processing on lock screen    │
+  │ BLUETOOTH                    │ Bluetooth device discovery              │
+  └──────────────────────────────┴─────────────────────────────────────────┘-->
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ── Network ─────────────────────────────────────────────────── -->
+    <!-- Local WebSocket gateway connection to Python backend          -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- ── Audio (Voice Input) ─────────────────────────────────────── -->
+    <!-- Microphone for speech-to-text via local faster-whisper         -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- ── Camera (Vision Tool) ────────────────────────────────────── -->
+    <!-- Capture images for on-device vision analysis                   -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- ── Location (Geolocation Tool) ─────────────────────────────── -->
+    <!-- GPS and network-based location for LocationTool               -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- ── Contacts (ContactsTool) ─────────────────────────────────── -->
+    <!-- Look up phone numbers, emails, and addresses for contacts      -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <!-- ── SMS (Messaging Tool) ────────────────────────────────────── -->
+    <!-- Search and send SMS messages (send requires user confirmation) -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- ── Calendar (CalendarTool) ─────────────────────────────────── -->
+    <!-- Read and create calendar events                                -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- ── Phone (PhoneTool) ───────────────────────────────────────── -->
+    <!-- Access call log and device telephony information               -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- ── Bluetooth ───────────────────────────────────────────────── -->
+    <!-- Permissions required for Android 13+ notification permission   -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Vibration for haptic feedback on agent responses               -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ── Background Services ─────────────────────────────────────── -->
+    <!-- Persistent gateway service for agent readiness                 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Wake lock to keep processing during brief background periods   -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- ── Boot ────────────────────────────────────────────────────── -->
+    <!-- Restart background service after device reboot                 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- ── Hardware Features (Optional) ────────────────────────────── -->
+    <!-- Declare as 'false' so non-microphone devices can still install -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+
+    <application
+        android:name=".HermesApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HermesAgent"
+        tools:targetApi="36">
+
+        <!-- ── Hermes Agent Gateway Service ────────────────────────── -->
+        <!-- Runs the Python backend and WebSocket gateway in a         -->
+        <!-- foreground service to maintain persistent agent state.     -->
+        <!-- Uses FOREGROUND_SERVICE_DATA_SYNC type (Android 14+).      -->
+        <service
+            android:name=".service.HermesGatewayService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false" />
+
+        <!-- ── Boot Receiver ───────────────────────────────────────── -->
+        <!-- Restarts the gateway service after device reboot.          -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ── Main Activity ───────────────────────────────────────── -->
+        <!-- The Hermes Agent chat surface — a Jetpack Compose activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.HermesAgent">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep link: hermes-agent://chat -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="chat"
+                    android:scheme="hermes-agent" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>

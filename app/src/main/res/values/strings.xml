@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hermes Agent</string>
+    <string name="notification_channel_name">Agent Service</string>
+    <string name="notification_channel_description">Hermes Agent background service notification</string>
+    <string name="notification_title">Hermes Agent</string>
+    <string name="notification_text">Ready to assist</string>
+    <string name="settings_title">Settings</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
+    <string name="text_scale_label">Text Scale</string>
+    <string name="permission_microphone">Microphone access is needed for voice input and speech-to-text.</string>
+    <string name="permission_notifications">Notifications keep you informed of background agent activity.</string>
+    <string name="about_version">Version %s</string>
+    <string name="about_build">Build %d</string>
+</resources>

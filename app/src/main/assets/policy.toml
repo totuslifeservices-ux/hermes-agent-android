@@ -1,0 +1,78 @@
+# ── Hermes Agent Accountability Policy ──────────────────────────────────
+#
+# Proverbs 4:23 NLT:
+# "Guard your heart above all else, for it determines the course of your life."
+#
+# This configuration defines the ethical guardrails, privacy constraints, and
+# autonomy boundaries that govern the Hermes Agent's behavior on this device.
+# These settings are loaded at application startup and are immutable at
+# runtime — the LLM cannot override them under any circumstances.
+#
+# Every setting below is documented with its purpose, default value, and
+# the rationale for why it exists.
+
+[identity]
+# ── Application Identity ──────────────────────────────────────────────
+# Used for notification metadata and internal audit logging.
+version = "1.0.0"
+appName = "Hermes Agent"
+appOrg = "Nous Research"
+
+[operating_mode]
+# ── Operating Mode ────────────────────────────────────────────────────
+# Offline-first: all AI inference runs locally on-device by default.
+# Cloud inference can only be enabled with explicit user consent.
+offlineFirst = true
+allowCloudInferenceOverride = false
+autoStartService = true
+
+[privacy]
+# ── Privacy & Data Sovereignty ─────────────────────────────────────────
+# Zero telemetry, zero tracking, zero third-party SDKs.
+# All data stays on this device.
+telemetryDisabled = true
+disableThirdPartyTrackers = true
+redactPII = true
+noConversationLogging = true
+encryptLocalDatabase = true
+sessionRetentionDays = 90
+
+[content_safety]
+# ── Content Safety Filters ────────────────────────────────────────────
+# The agent is designed to be helpful, honest, and harmless. These
+# filters prevent deceptive, harmful, or illegal content generation.
+blockDeceptiveContent = true
+blockUnpermittedAutonomy = true
+requireFileWriteConsent = true
+requireNetworkConsent = false
+blockPolicyModificationAttempts = true
+
+[agent_autonomy]
+# ── Agent Autonomy Boundaries ─────────────────────────────────────────
+# The agent can act autonomously within limits, but always with
+# transparency and user consent for destructive operations.
+maxAutonomousTurns = 30
+autonomyTimeoutSeconds = 300
+requireShellApproval = true
+blockDangerousCommands = true
+
+[local_ai]
+# ── Local AI Model Configuration ──────────────────────────────────────
+# Default models for on-device inference. These run through Ollama,
+# llama.cpp, or the Chaquopy-embedded Python runtime.
+defaultLocalModel = "qwen3:14b"
+fallbackModel = "deepseek-coder:32b"
+maxContextTokens = 32768
+enableStreaming = true
+gatewayPort = 8320
+gatewayHost = "127.0.0.1"
+
+[permissions]
+# ── Runtime Permissions ───────────────────────────────────────────────
+# Declared with transparency — each permission maps to a specific
+# feature and is requested only when needed.
+requestMicrophoneOnFirstLaunch = true
+requestNotificationOnFirstLaunch = true
+allowAccessibilityIntegration = false
+allowCalendarAccess = false
+allowStorageAccess = true

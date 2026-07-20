@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Hermes Agent Material 3 theme overlay.
+      The actual theming is handled programmatically in HermesTheme.kt
+      via Material 3 dark/light color schemes. This XML defines the
+      bootstrap theme used before Compose initialization.
+    -->
+    <style name="Theme.HermesAgent" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/dark_background</item>
+        <item name="android:navigationBarColor">@color/dark_background</item>
+        <item name="android:windowBackground">@color/dark_background</item>
+    </style>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hermes Agent Color Palette -->
+    <color name="dark_background">#0F1419</color>
+    <color name="dark_surface">#1E2329</color>
+    <color name="dark_primary">#7CB8FF</color>
+    <color name="light_background">#F7F9FC</color>
+    <color name="light_surface">#E0E3E8</color>
+    <color name="light_primary">#0061A4</color>
+    <color name="accent_cyan">#7CB8FF</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_red">#FF6B6B</color>
+    <color name="accent_yellow">#FFD93D</color>
+</resources>
