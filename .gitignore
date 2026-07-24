@@ -21,3 +21,25 @@ crash_log.txt
 # Environment
 .env
 *.env.local
+
+
+# Stray project files (Next.js web app — not part of Android project)
+/src/
+/prisma/
+/public/
+/scripts/
+/Dockerfile
+/docker-compose.yml
+/livekit.yaml
+/next.config.ts
+/package.json
+/package-lock.json
+/postcss.config.mjs
+/prisma.config.ts
+/components.json
+/eslint.config.mjs
+/AGENTS.md
+/ARCHITECTURE.md
+/CLAUDE.md
+/README.md
+
