@@ -2,6 +2,8 @@ package com.nousresearch.hermes.agent
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
+import android.os.StrictMode
 import android.util.Log
 import com.nousresearch.hermes.agent.core.AgentConfig
 import com.nousresearch.hermes.agent.core.ProviderConfig
@@ -56,6 +58,9 @@ class HermesApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // ── 0. Install crash handler ────────────────────────────────────
+        installCrashHandler()
 
         // ── 1. Load privacy & safety policy before any other init ─────
         policy = PolicyEnloader.loadFromAssets(this)
@@ -156,6 +161,33 @@ class HermesApplication : Application() {
         @Volatile
         lateinit var instance: HermesApplication
             private set
+    }
+
+    /**
+     * Installs a default uncaught exception handler that writes crash
+     * reports to the app's cache directory. Zero telemetry — crashes
+     * are stored locally for debugging only.
+     */
+    private fun installCrashHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val crashFile = java.io.File(cacheDir, "crash_log.txt")
+                crashFile.appendText(
+                    "=== CRASH ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+                        .format(java.util.Date())} ===\n" +
+                    "Thread: ${thread.name}\n" +
+                    "SDK: ${Build.VERSION.SDK_INT}, Release: ${Build.VERSION.RELEASE}\n" +
+                    "Device: ${Build.MODEL} (${Build.MANUFACTURER})\n" +
+                    "Exception: ${throwable.javaClass.name}: ${throwable.message}\n" +
+                    android.util.Log.getStackTraceString(throwable) + "\n\n"
+                )
+                Log.e(TAG, "Crash logged to ${crashFile.absolutePath}", throwable)
+            } catch (_: Exception) {
+                // Best-effort logging, never crash in crash handler
+            }
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
     }
 }
 

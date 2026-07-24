@@ -142,6 +142,18 @@ fun SessionListScreen(
                     )
                 }
 
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "Loading sessions...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        )
+                    }
+                }
                 sessions.isEmpty() && searchQuery.isNotEmpty() -> {
                     EmptySearchState(
                         query = searchQuery,

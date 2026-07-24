@@ -10,6 +10,7 @@ import com.nousresearch.hermes.agent.core.ProviderConfig
 import com.nousresearch.hermes.agent.core.ProviderType
 import com.nousresearch.hermes.agent.core.StreamEvent
 import com.nousresearch.hermes.agent.core.ToolDescriptor
+import java.io.IOException
 import com.nousresearch.hermes.agent.core.UsageInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -147,6 +148,56 @@ class LlmBroker(
 
     /** Returns the current default provider configuration. */
     fun getCurrentConfig(): ProviderConfig = defaultConfig
+
+    /**
+     * Returns a fallback provider when the primary provider fails.
+     * Chains: NousPortal → OpenRouter → Ollama → null
+     */
+    fun getFallbackProvider(current: ProviderType): LlmProvider? {
+        val fallbackOrder = listOf(
+            ProviderType.NousPortal,
+            ProviderType.OpenRouter,
+            ProviderType.Ollama,
+        )
+        val startIndex = fallbackOrder.indexOf(current) + 1
+        for (i in startIndex until fallbackOrder.size) {
+            val candidate = providers[fallbackOrder[i]]
+            if (candidate != null) return candidate
+        }
+        return null
+    }
+
+    /**
+     * Execute with automatic fallback on recoverable errors.
+     */
+    suspend fun completeWithFallback(
+        messages: MutableList<LlmMessage>,
+        tools: List<ToolDescriptor>? = null,
+        config: ProviderConfig = defaultConfig,
+        maxToolIterations: Int = defaultMaxToolIterations,
+    ): CompletionResponse {
+        var lastError: Exception? = null
+        var currentConfig = config
+        var attempts = 0
+        val maxAttempts = providers.size
+        
+        while (attempts < maxAttempts) {
+            try {
+                return complete(messages, tools, currentConfig, maxToolIterations)
+            } catch (e: Exception) {
+                lastError = e
+                Log.w(TAG, "Provider ${currentConfig.type} failed: ${e.message}")
+                
+                val fallback = getFallbackProvider(currentConfig.type)
+                if (fallback == null || attempts >= maxAttempts - 1) break
+                
+                currentConfig = currentConfig.copy(type = fallback.type)
+                Log.i(TAG, "Falling back to ${currentConfig.type}")
+                attempts++
+            }
+        }
+        throw lastError ?: IOException("All providers failed")
+    }
 
     // ── Public API: Single-shot ─────────────────────────────────────
 

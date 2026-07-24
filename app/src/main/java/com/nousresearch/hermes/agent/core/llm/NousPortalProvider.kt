@@ -12,10 +12,12 @@ import com.nousresearch.hermes.agent.core.StreamEvent
 import com.nousresearch.hermes.agent.core.ToolDescriptor
 import com.nousresearch.hermes.agent.core.UsageInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -86,21 +88,61 @@ class NousPortalProvider(
 
     override suspend fun complete(request: CompletionRequest): CompletionResponse {
         val httpRequest = buildHttpRequest(request, stream = false)
-        return withContext(Dispatchers.IO) {
-            httpClient.newCall(httpRequest).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
-                    throw IOException("NousPortal API error ${response.code}: $body")
-                }
-                parseCompleteResponse(body)
-            }
-        }
+        return executeWithRetry(httpRequest, maxRetries = 3)
     }
 
-    override fun stream(request: CompletionRequest): Flow<StreamEvent> = flow {
+    private suspend fun executeWithRetry(httpRequest: Request, maxRetries: Int): CompletionResponse =
+        withContext(Dispatchers.IO) {
+            var lastError: Exception? = null
+            var retries = 0
+            var response = httpClient.newCall(httpRequest).execute()
+            var body = response.body?.string() ?: ""
+            
+            while (retries < maxRetries) {
+                if (response.isSuccessful) {
+                    return@withContext parseCompleteResponse(body)
+                }
+                
+                when (response.code) {
+                    401 -> {
+                        if (retries < 2) {
+                            retries++
+                            response = httpClient.newCall(httpRequest).execute()
+                            body = response.body?.string() ?: ""
+                            continue
+                        }
+                        lastError = IOException("Authentication failed after ${retries + 1} attempts")
+                        break
+                    }
+                    429 -> {
+                        val retryAfter = response.header("Retry-After")?.toIntOrNull() ?: 5
+                        retries++
+                        kotlinx.coroutines.delay(retryAfter * 1000L)
+                        response = httpClient.newCall(httpRequest).execute()
+                        body = response.body?.string() ?: ""
+                        continue
+                    }
+                    500, 502, 503 -> {
+                        val backoff = (1L shl retries) * 1000L
+                        retries++
+                        kotlinx.coroutines.delay(backoff)
+                        response = httpClient.newCall(httpRequest).execute()
+                        body = response.body?.string() ?: ""
+                        continue
+                    }
+                    else -> {
+                        lastError = IOException("API error ${response.code}: ${body.take(200)}")
+                        break
+                    }
+                }
+            }
+            throw lastError ?: IOException("Request failed after $maxRetries retries: ${response.code}")
+        }
+
+override fun stream(request: CompletionRequest): Flow<StreamEvent> = flow {
         val httpRequest = buildHttpRequest(request, stream = true)
         emitAll(StreamingAdapter.stream(httpClient, httpRequest))
-    }
+    }.flowOn(Dispatchers.IO)
 
     // ── Request building ────────────────────────────────────────────
 

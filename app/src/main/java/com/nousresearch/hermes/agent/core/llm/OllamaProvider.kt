@@ -12,7 +12,9 @@ import com.nousresearch.hermes.agent.core.StreamEvent
 import com.nousresearch.hermes.agent.core.ToolDescriptor
 import com.nousresearch.hermes.agent.core.UsageInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -83,20 +85,46 @@ class OllamaProvider(
 
     override suspend fun complete(request: CompletionRequest): CompletionResponse {
         val httpRequest = buildHttpRequest(request, stream = false)
-        return withContext(Dispatchers.IO) {
-            httpClient.newCall(httpRequest).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
-                    throw IOException("Ollama API error ${response.code}: $body")
-                }
-                parseCompleteResponse(body)
-            }
-        }
+        return executeWithRetry(httpRequest, maxRetries = 3)
     }
+
+    private suspend fun executeWithRetry(httpRequest: Request, maxRetries: Int): CompletionResponse =
+        withContext(Dispatchers.IO) {
+            var lastError: Exception? = null
+            for (attempt in 0..maxRetries) {
+                try {
+                    val response = httpClient.newCall(httpRequest).execute()
+                    val body = response.body?.string() ?: ""
+                    if (!response.isSuccessful) {
+                        throw IOException("Ollama API error ${response.code}: ${body.take(200)}")
+                    }
+                    return@withContext parseCompleteResponse(body)
+                } catch (e: java.net.ConnectException) {
+                    if (attempt < maxRetries) {
+                        val backoff = (1L shl attempt) * 1000L
+                        Log.w(TAG, "Ollama not running? Retrying in ${backoff}ms (attempt ${attempt + 1}/$maxRetries)")
+                        kotlinx.coroutines.delay(backoff)
+                    } else {
+                        lastError = IOException("Ollama connection refused. Ensure Ollama is running (http://localhost:11434)")
+                    }
+                } catch (e: java.net.SocketTimeoutException) {
+                    if (attempt < maxRetries) {
+                        val backoff = (1L shl attempt) * 1000L
+                        kotlinx.coroutines.delay(backoff)
+                    } else {
+                        lastError = IOException("Ollama connection timed out. Check that Ollama is running.")
+                    }
+                } catch (e: Exception) {
+                    if (attempt >= maxRetries) throw e
+                    kotlinx.coroutines.delay(1000L)
+                }
+            }
+            throw lastError ?: IOException("Ollama request failed after ${maxRetries + 1} attempts")
+        }
 
     override fun stream(request: CompletionRequest): Flow<StreamEvent> {
         val httpRequest = buildHttpRequest(request, stream = true)
-        return StreamingAdapter.stream(httpClient, httpRequest)
+        return StreamingAdapter.stream(httpClient, httpRequest).flowOn(Dispatchers.IO)
     }
 
     // ── Request building ────────────────────────────────────────────
