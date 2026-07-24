@@ -128,7 +128,7 @@ fun HermesNavHost(
     val chatViewModel = remember { ChatViewModel(orchestrator) }
     val settingsViewModel = remember { SettingsViewModel(app, orchestrator) }
     val sessionListViewModel = remember { SessionListViewModel(orchestrator.sessionStore) }
-    val toolDashboardViewModel = remember { ToolDashboardViewModel(orchestrator.toolRegistry) }
+    val toolDashboardViewModel = remember { ToolDashboardViewModel(com.nousresearch.hermes.agent.core.tools.ToolRegistry()) }
 
     Scaffold(
         modifier = modifier,

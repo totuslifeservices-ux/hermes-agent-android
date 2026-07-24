@@ -112,7 +112,7 @@ fun buildToolSystemSegment(tools: List<ToolDescriptor>): String {
  */
 fun estimateTokenCount(text: String): Int {
     if (text.isEmpty()) return 0
-    return (text.length / CHARS_PER_TOKEN_ESTIMATE).coerceAtLeast(1)
+    return (text.length / CHARS_PER_TOKEN_ESTIMATE).coerceAtLeast(1.0f).toInt()
 }
 
 /**
@@ -153,7 +153,7 @@ fun estimateMessageTokenCount(messages: List<LlmMessage>): Int {
  *
  * This mirrors the approach in hermes-agent/agent/prompt_builder.py.
  */
-class PromptBuilder(private val config: AgentConfig) {
+class PromptBuilder(val config: AgentConfig) {
 
     /**
      * Build the complete system prompt string combining the user-configured
@@ -284,7 +284,7 @@ class PromptBuilder(private val config: AgentConfig) {
         val userMessage = messages.last()
 
         // Calculate what to keep
-        val tailCount = (messages.size * config.compressionTargetRatio).toInt().coerceAtLeast(2)
+        val tailCount = (config.contextLength.toFloat() * config.compressionTargetRatio).toInt()
         val historyStart = 1 // index after system
         val historyEndExclusive = messages.size - 1 // exclude user message
 

@@ -227,12 +227,12 @@ object StreamingAdapter {
 
                     val choice = choices[0].jsonObject
                     val delta = choice["delta"]?.jsonObject
-                    val finishReason = choice["finishReason"]?.jsonPrimitive?.contentOrNull
-                        ?: choice["finish_reason"]?.jsonPrimitive?.contentOrNull
+                    val finishReason = choice["finishReason"]?.jsonPrimitive?.let { it.content }
+                        ?: choice["finish_reason"]?.jsonPrimitive?.let { it.content }
 
                     // ── Content delta ─────────────────────────────────
                     if (delta != null) {
-                        val content = delta["content"]?.jsonPrimitive?.contentOrNull
+                        val content = delta["content"]?.jsonPrimitive?.let { it.content }
                         if (content != null) {
                             emit(StreamEvent.TextChunk(content))
                         }
@@ -246,11 +246,11 @@ object StreamingAdapter {
                             }
                             for (tcElem in toolCallsJson) {
                                 val tcObj = tcElem.jsonObject
-                                val index = tcObj["index"]?.jsonPrimitive?.intOrNull ?: 0
+                                val index = tcObj["index"]?.jsonPrimitive?.let { it.content.toIntOrNull() } ?: 0
                                 val funcObj = tcObj["function"]?.jsonObject
-                                val id = tcObj["id"]?.jsonPrimitive?.contentOrNull
-                                val name = funcObj?.get("name")?.jsonPrimitive?.contentOrNull
-                                val argsPart = funcObj?.get("arguments")?.jsonPrimitive?.contentOrNull
+                                val id = tcObj["id"]?.jsonPrimitive?.let { it.content }
+                                val name = funcObj?.get("name")?.jsonPrimitive?.let { it.content }
+                                val argsPart = funcObj?.get("arguments")?.jsonPrimitive?.let { it.content }
 
                                 if (id != null) toolCallIndexes[index] = id
                                 if (name != null) toolCallNames[index] = name

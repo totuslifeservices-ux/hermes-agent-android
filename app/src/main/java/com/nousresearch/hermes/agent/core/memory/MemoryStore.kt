@@ -67,14 +67,14 @@ class SimpleEmbeddingEngine(private val dimension: Int = 256) {
         // Character bigrams
         for (i in 0 until normalized.length - 1) {
             val bigram = normalized.substring(i, i + 2)
-            val hash = (bigram.hashCode().absoluteValue) % dimension
+            val hash = (bigram.hashCode()) % dimension
             vector[hash] += 2.0f
         }
 
         // Word unigrams (hashed into subspace)
         val words = normalized.split(Regex("\\s+"))
         for ((idx, word) in words.withIndex()) {
-            val hash = (word.hashCode().absoluteValue * 31 + idx * 7) % dimension
+            val hash = (word.hashCode() * 31 + idx * 7) % dimension
             vector[hash] += 3.0f
         }
 

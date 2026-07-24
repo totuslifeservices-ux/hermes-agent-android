@@ -69,7 +69,7 @@ class ConversationLoop(
     private val sessionStore: SessionStore,
     private val promptBuilder: PromptBuilder,
 ) {
-    private val scope = coroutineScope { SupervisorJob() }
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
 
     /**
      * Run a conversation turn for [sessionId] with [userMessage].

@@ -16,6 +16,7 @@ import com.nousresearch.hermes.agent.core.tools.ToolContext
 import com.nousresearch.hermes.agent.core.tools.ToolExecutor
 import com.nousresearch.hermes.agent.core.tools.ToolRegistry
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 
 // ── Orchestrator State ────────────────────────────────────────────────
@@ -47,8 +48,8 @@ data class OrchestratorState(
  * ## Lifecycle
  *
  * Implements [ComponentCallbacks2] to respond to Android memory pressure:
- * - TRIM_MEMORY_UI_HIDDEN: persist state snapshot
- * - TRIM_MEMORY_COMPLETE: cancel active conversations and persist
+ * - ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN: persist state snapshot
+ * - ComponentCallbacks2.TRIM_MEMORY_COMPLETE: cancel active conversations and persist
  *
  * ## Architecture
  *
@@ -322,14 +323,14 @@ class AgentOrchestrator(
 
     override fun onTrimMemory(level: Int) {
         when {
-            level >= TRIM_MEMORY_COMPLETE -> {
+            level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
                 cancelAllConversations()
                 scope.launch { persistState() }
             }
-            level >= TRIM_MEMORY_UI_HIDDEN -> {
+            level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN -> {
                 scope.launch { persistState() }
             }
-            level >= TRIM_MEMORY_MODERATE -> {
+            level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
                 scope.launch { persistState() }
             }
         }

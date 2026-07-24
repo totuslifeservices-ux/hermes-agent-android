@@ -1,17 +1,13 @@
 package com.nousresearch.hermes.agent.ui.components
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.TwoWayRepeater
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -22,34 +18,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
  * TypingIndicator — Animated three-dot typing indicator.
  *
- * Shows three dots that fade and scale in a staggered wave pattern
+ * Shows three dots that fade in a staggered wave pattern
  * to indicate the agent is generating a response.
+ * Uses Compose's built-in infiniteTransition with staggered,
+ * individually-latched animations.
  */
 @Composable
 fun TypingIndicator(
     modifier: Modifier = Modifier,
     dotSize: Dp = 8.dp,
-    dotColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    dotColor: Color = MaterialTheme.colorScheme.primary,
 ) {
+    // Three separate transitions, each with a delay via different label
+    // timing. Since infiniteRepeatable doesn't support initialStartOffset
+    // in this version, we use staggered animation specs.
     val infiniteTransition = rememberInfiniteTransition(label = "typing")
-
-    // Staggered delays for each dot (0, 150, 300 ms)
-    val animSpec = tween<Float>(durationMillis = 800)
 
     val alpha1 by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = animSpec,
+            animation = tween(durationMillis = 600),
             repeatMode = RepeatMode.Reverse,
-            initialStartOffset = androidx.compose.animation.core.startOffset(0),
         ),
         label = "dot1",
     )
@@ -58,9 +55,8 @@ fun TypingIndicator(
         initialValue = 0.3f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = animSpec,
+            animation = tween(durationMillis = 600, delayMillis = 200),
             repeatMode = RepeatMode.Reverse,
-            initialStartOffset = androidx.compose.animation.core.startOffset(150),
         ),
         label = "dot2",
     )
@@ -69,9 +65,8 @@ fun TypingIndicator(
         initialValue = 0.3f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = animSpec,
+            animation = tween(durationMillis = 600, delayMillis = 400),
             repeatMode = RepeatMode.Reverse,
-            initialStartOffset = androidx.compose.animation.core.startOffset(300),
         ),
         label = "dot3",
     )
@@ -93,7 +88,7 @@ fun TypingIndicator(
 private fun TypingDot(
     alpha: Float,
     size: Dp,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
 ) {
     Surface(
         modifier = Modifier

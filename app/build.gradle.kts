@@ -3,8 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.devtools.ksp")
-    id("com.chaquo.python")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
 
 android {
@@ -19,17 +18,6 @@ android {
         versionName = "0.18.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        // ── Chaquopy Python configuration ─────────────────────────────────
-        python {
-            buildPython("/usr/bin/python3")
-            pip {
-                install("hermes-agent")
-                install("faster-whisper")
-                install("edge-tts")
-                install("chromadb")
-            }
-        }
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")

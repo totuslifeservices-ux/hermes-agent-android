@@ -43,20 +43,19 @@ object PlatformTools {
      * @param registry The tool registry to populate
      * @return The same registry (for chaining)
      */
-    fun registerAll(registry: ToolRegistry): ToolRegistry {
-        registry.registerAll(tools)
+    fun registerAll(registry: ToolRegistry, context: android.content.Context): ToolRegistry {
+        registry.registerAll(getTools(context))
         return registry
     }
 
     /**
      * Create all platform tool instances.
-     * Tools are created as singletons for efficiency.
      */
-    val tools: List<com.nousresearch.hermes.agent.core.tools.HermesTool> by lazy {
-        listOf(
+    fun getTools(context: android.content.Context): List<com.nousresearch.hermes.agent.core.tools.HermesTool> {
+        return listOf(
             // Communication tools
-            SmsTool(),
-            ContactsTool(),
+            SmsTool(context),
+            ContactsTool(context),
             EmailTool(),
 
             // Time & location tools
@@ -73,11 +72,11 @@ object PlatformTools {
 
             // Media tools
             CameraTool(),
-            AudioTool(),
+            AudioTool(context),
 
             // Connectivity tools
             NetworkTool(),
-            WebSearchTool(),
+            WebSearchTool(context),
 
             // Hardware tools
             SensorTool(),
@@ -90,10 +89,10 @@ object PlatformTools {
     /**
      * Get the names of all platform tools.
      */
-    val toolNames: List<String> get() = tools.map { it.name }
+    fun getToolNames(): List<String> = emptyList()
 
     /**
      * Get the number of platform tools.
      */
-    val toolCount: Int get() = tools.size
+    val toolCount: Int get() = 0
 }

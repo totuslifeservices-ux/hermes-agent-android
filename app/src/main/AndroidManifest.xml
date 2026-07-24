@@ -32,7 +32,7 @@
   │ VIBRATE                      │ Haptic feedback on agent responses      │
   │ WAKE_LOCK                    │ Keep agent processing on lock screen    │
   │ BLUETOOTH                    │ Bluetooth device discovery              │
-  └──────────────────────────────┴─────────────────────────────────────────┘-->
+  └──────────────────────────────┴─────────────────────────────────────────┘
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"

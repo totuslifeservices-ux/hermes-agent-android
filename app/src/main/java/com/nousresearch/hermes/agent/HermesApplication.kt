@@ -4,10 +4,16 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import com.nousresearch.hermes.agent.core.AgentConfig
+import com.nousresearch.hermes.agent.core.ProviderConfig
+import com.nousresearch.hermes.agent.core.ProviderType
 import com.nousresearch.hermes.agent.core.agent.AgentOrchestrator
 import com.nousresearch.hermes.agent.core.llm.LlmBroker
+import com.nousresearch.hermes.agent.core.llm.NousPortalProvider
+import com.nousresearch.hermes.agent.core.llm.OpenRouterProvider
+import com.nousresearch.hermes.agent.core.llm.OllamaProvider
 import com.nousresearch.hermes.agent.core.tools.ToolExecutor
 import com.nousresearch.hermes.agent.core.tools.ToolRegistry
+import com.nousresearch.hermes.agent.core.tools.platform.PlatformTools
 import com.nousresearch.hermes.agent.model.PolicyEnforcer
 import com.nousresearch.hermes.agent.service.HermesGatewayService
 import kotlinx.coroutines.CoroutineScope
@@ -43,8 +49,8 @@ class HermesApplication : Application() {
     /** Application-level coroutine scope */
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    /** Whether Python backend has been initialized */
-    var isPythonReady: Boolean = false
+    /** Whether the native orchestrator is initialized */
+    var isOrchestratorReady: Boolean = false
         private set
 
     override fun onCreate() {
@@ -56,25 +62,14 @@ class HermesApplication : Application() {
 
         // ── 2. Initialize tool registry ────────────────────────────────
         toolRegistry = ToolRegistry()
+        PlatformTools.registerAll(toolRegistry, this)
 
-        // ── 3. Initialize Python runtime (Chaquopy) ───────────────────
-        if (!isPythonReady) {
-            try {
-                // Python.start() is called implicitly by Chaquopy when the
-                // first Python module is imported.
-                isPythonReady = true
-            } catch (e: Exception) {
-                Log.e(TAG, "Python initialization failed", e)
-                isPythonReady = false
-            }
-        }
-
-        // ── 4. Initialize AgentOrchestrator (deferred to allow tool registration) ──
+        // ── 3. Initialize AgentOrchestrator (deferred) ─────────────────
         appScope.launch {
             initAgentOrchestrator()
         }
 
-        // ── 5. Start gateway service for persistent agent session ─────
+        // ── 4. Start gateway service ───────────────────────────────────
         if (policy.autoStartService) {
             HermesGatewayService.start(this)
         }
@@ -94,8 +89,28 @@ class HermesApplication : Application() {
             defaultTimeoutSeconds = 60L,
         )
 
+        // Create demo providers with Nous Portal as default
+        val providerConfig = ProviderConfig(type = ProviderType.NousPortal, model = "claude-sonnet-4")
+        val nousProvider = NousPortalProvider(config = providerConfig, tokenProvider = { "demo-token" })
+        val openRouterProvider = OpenRouterProvider(config = providerConfig.copy(type = ProviderType.OpenRouter), apiKey = "demo-key")
+        val ollamaProvider = OllamaProvider(config = providerConfig.copy(type = ProviderType.Ollama))
+
+        val providers = mapOf(
+            ProviderType.NousPortal to nousProvider,
+            ProviderType.OpenRouter to openRouterProvider,
+            ProviderType.Ollama to ollamaProvider,
+        )
+
+        val defaultConfig = ProviderConfig(
+            type = ProviderType.NousPortal,
+            model = "claude-sonnet-4",
+            maxTokens = 32768,
+            temperature = 0.7f,
+        )
+
         val llmBroker = LlmBroker(
-            context = this,
+            providers = providers,
+            defaultConfig = defaultConfig,
             toolExecutor = com.nousresearch.hermes.agent.core.llm.ToolExecutor { toolCall ->
                 executor.execute(
                     call = toolCall,

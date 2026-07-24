@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent_cyan">#7CB8FF</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_red">#FF6B6B</color>
+    <color name="accent_yellow">#FFD93D</color>
+    <color name="dark_background">#0F1419</color>
+    <color name="dark_primary">#7CB8FF</color>
+    <color name="dark_surface">#1E2329</color>
+    <color name="light_background">#F7F9FC</color>
+    <color name="light_primary">#0061A4</color>
+    <color name="light_surface">#E0E3E8</color>
+    <string name="about_build">Build %d</string>
+    <string name="about_version">Version %s</string>
+    <string name="app_name">Hermes Agent</string>
+    <string name="notification_channel_description">Hermes Agent background service notification</string>
+    <string name="notification_channel_name">Agent Service</string>
+    <string name="notification_text">Ready to assist</string>
+    <string name="notification_title">Hermes Agent</string>
+    <string name="permission_microphone">Microphone access is needed for voice input and speech-to-text.</string>
+    <string name="permission_notifications">Notifications keep you informed of background agent activity.</string>
+    <string name="settings_title">Settings</string>
+    <string name="text_scale_label">Text Scale</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
+    <style name="Theme.HermesAgent" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/dark_background</item>
+        <item name="android:navigationBarColor">@color/dark_background</item>
+        <item name="android:windowBackground">@color/dark_background</item>
+    </style>
+</resources>

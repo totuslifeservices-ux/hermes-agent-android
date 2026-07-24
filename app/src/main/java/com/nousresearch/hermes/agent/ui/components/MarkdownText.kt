@@ -15,8 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.util.regex.Pattern
 
 /**
  * MarkdownText — Renders simplified Markdown as an AnnotatedString.
@@ -76,7 +76,7 @@ private fun renderMarkdown(text: String, baseColor: Color): AnnotatedString {
                 withStyle(
                     SpanStyle(
                         color = primaryColor,
-                        background = Color(0xFF1E2329.copy(alpha = 0.3f)),
+                        background = Color(0xFF1E2329).copy(alpha = 0.3f),
                         fontSize = 13.sp,
                     )
                 ) {
@@ -86,11 +86,11 @@ private fun renderMarkdown(text: String, baseColor: Color): AnnotatedString {
                 continue
             } else if (codeBlockMatch != null && codeBlockMatch.range.first > 0) {
                 // Process up to the code block
-                append(renderInline(remaining.substring(0, codeBlockMatch.range.first), baseColor, primaryColor))
+                renderInline(remaining.substring(0, codeBlockMatch.range.first), baseColor, primaryColor)
                 withStyle(
                     SpanStyle(
                         color = primaryColor,
-                        background = Color(0xFF1E2329.copy(alpha = 0.3f)),
+                        background = Color(0xFF1E2329).copy(alpha = 0.3f),
                         fontSize = 13.sp,
                     )
                 ) {
@@ -101,7 +101,7 @@ private fun renderMarkdown(text: String, baseColor: Color): AnnotatedString {
             }
 
             // No more code blocks, render the rest as inline
-            append(renderInline(remaining, baseColor, primaryColor))
+            renderInline(remaining, baseColor, primaryColor)
             break
         }
     }
@@ -144,7 +144,7 @@ private fun AnnotatedString.Builder.renderInline(
             withStyle(
                 SpanStyle(
                     color = primaryColor,
-                    background = Color(0xFF1E2329.copy(alpha = 0.3f)),
+                    background = Color(0xFF1E2329).copy(alpha = 0.3f),
                 )
             ) {
                 append(codeMatch.groupValues[1])
@@ -221,15 +221,12 @@ private fun AnnotatedString.Builder.renderInline(
 
 // ── Regex patterns ─────────────────────────────────────────────────────────
 
-private val CODE_BLOCK_REGEX = Pattern.compile(
-    "```(?:\\w+)?\\s*\\n?([\\s\\S]*?)```",
-    Pattern.MULTILINE
-)
-private val BOLD_REGEX = Pattern.compile("^\\*\\*(.+?)\\*\\*")
-private val ITALIC_REGEX = Pattern.compile("^\\*(.+?)\\*")
-private val INLINE_CODE_REGEX = Pattern.compile("^`([^`]+)`")
-private val LINK_REGEX = Pattern.compile("^\\[([^]]+)]\\(([^)]+)\\)")
-private val HEADING_REGEX = Pattern.compile("^(#{1,3})\\s+(.+)$", Pattern.MULTILINE)
-private val BULLET_REGEX = Pattern.compile("^[-*]\\s+(.+)$", Pattern.MULTILINE)
-private val NUMBERED_REGEX = Pattern.compile("^(\\d+)\\.\\s+(.+)$", Pattern.MULTILINE)
-private val HR_REGEX = Pattern.compile("^---+\\s*$", Pattern.MULTILINE)
+private val CODE_BLOCK_REGEX = Regex("```(\\w*)\\n([\\s\\S]*?)```", RegexOption.MULTILINE)
+private val BOLD_REGEX = Regex("^\\*\\*(.+?)\\*\\*")
+private val ITALIC_REGEX = Regex("^\\*(.+?)\\*")
+private val INLINE_CODE_REGEX = Regex("^`([^`]+)`")
+private val LINK_REGEX = Regex("^\\[([^]]+)]\\(([^)]+)\\)")
+private val HEADING_REGEX = Regex("^(#{1,3})\\s+(.+)$", RegexOption.MULTILINE)
+private val BULLET_REGEX = Regex("^[-*]\\s+(.+)$", RegexOption.MULTILINE)
+private val NUMBERED_REGEX = Regex("^(\\d+)\\.\\s+(.+)$", RegexOption.MULTILINE)
+private val HR_REGEX = Regex("^---+\\s*$", RegexOption.MULTILINE)

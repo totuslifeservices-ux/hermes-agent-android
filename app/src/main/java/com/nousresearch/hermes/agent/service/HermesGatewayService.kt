@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.LifecycleService
+import android.app.Service
 import com.nousresearch.hermes.agent.MainActivity
 import com.nousresearch.hermes.agent.R
 
@@ -31,7 +31,7 @@ import com.nousresearch.hermes.agent.R
  * - All processing is local and offline-first
  * - Session data is encrypted at rest
  */
-class HermesGatewayService : LifecycleService() {
+class HermesGatewayService : Service() {
 
     companion object {
         private const val TAG = "HermesGateway"
@@ -93,8 +93,7 @@ class HermesGatewayService : LifecycleService() {
         Log.i(TAG, "Hermes Gateway Service destroyed")
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        super.onBind(intent)
+    override fun onBind(intent: Intent?): android.os.IBinder? {
         return null
     }
 
@@ -107,7 +106,7 @@ class HermesGatewayService : LifecycleService() {
                 getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = getString(R.string.notification_channel_description)
+                description = "Hermes Agent background service notification"
                 setShowBadge(false)
                 enableVibration(false)
                 enableLights(false)
@@ -126,8 +125,8 @@ class HermesGatewayService : LifecycleService() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.notification_title))
-            .setContentText(getString(R.string.notification_text))
+            .setContentTitle("Hermes Agent")
+            .setContentText("Ready to assist")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

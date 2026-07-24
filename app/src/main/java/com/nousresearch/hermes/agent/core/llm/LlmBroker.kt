@@ -145,6 +145,9 @@ class LlmBroker(
         private const val TAG = "LlmBroker"
     }
 
+    /** Returns the current default provider configuration. */
+    fun getCurrentConfig(): ProviderConfig = defaultConfig
+
     // ── Public API: Single-shot ─────────────────────────────────────
 
     /**

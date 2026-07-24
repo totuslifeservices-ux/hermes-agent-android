@@ -1,5 +1,6 @@
 package com.nousresearch.hermes.agent.ui.settings
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,6 +56,7 @@ import com.nousresearch.hermes.agent.core.ProviderType
  * SettingsScreen — Settings page for model/provider selection, API key,
  * temperature, max tokens, theme, text size, and about section.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,

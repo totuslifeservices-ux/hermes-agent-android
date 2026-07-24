@@ -187,7 +187,7 @@ class NotificationTool : HermesTool {
                 notificationManager.activeNotifications
             } else {
                 @Suppress("DEPRECATION")
-                notificationManager.activeNotificationSnapshots
+                notificationManager?.getActiveNotifications()
             }
 
             activeNotifications?.forEach { sbn ->

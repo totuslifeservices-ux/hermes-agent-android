@@ -12,15 +12,21 @@ import com.nousresearch.hermes.agent.core.StreamEvent
 import com.nousresearch.hermes.agent.core.ToolDescriptor
 import com.nousresearch.hermes.agent.core.UsageInfo
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
@@ -91,9 +97,9 @@ class NousPortalProvider(
         }
     }
 
-    override fun stream(request: CompletionRequest): Flow<StreamEvent> {
+    override fun stream(request: CompletionRequest): Flow<StreamEvent> = flow {
         val httpRequest = buildHttpRequest(request, stream = true)
-        return StreamingAdapter.stream(httpClient, httpRequest)
+        emitAll(StreamingAdapter.stream(httpClient, httpRequest))
     }
 
     // ── Request building ────────────────────────────────────────────
@@ -234,26 +240,26 @@ class NousPortalProvider(
 
         val choice = choices[0].jsonObject
         val message = choice["message"]?.jsonObject
-        val finishReason = choice["finish_reason"]?.jsonPrimitive?.contentOrNull
+        val finishReason = choice["finish_reason"]?.jsonPrimitive?.let { it.content } ?: "stop"
 
-        val content = message?.get("content")?.jsonPrimitive?.contentOrNull
+        val content = message?.get("content")?.jsonPrimitive?.let { it.content }
 
         val toolCalls = message?.get("tool_calls")?.jsonArray?.mapNotNull { tcElem ->
             val tcObj = tcElem.jsonObject
             val function = tcObj["function"]?.jsonObject ?: return@mapNotNull null
             LlmToolCall(
-                id = tcObj["id"]?.jsonPrimitive?.contentOrNull ?: "",
-                name = function["name"]?.jsonPrimitive?.contentOrNull ?: "",
-                arguments = function["arguments"]?.jsonPrimitive?.contentOrNull ?: "{}",
+                id = tcObj["id"]?.jsonPrimitive?.let { it.content } ?: "",
+                name = function["name"]?.jsonPrimitive?.let { it.content } ?: "",
+                arguments = function["arguments"]?.jsonPrimitive?.let { it.content } ?: "{}",
             )
         }
 
         // Parse usage info
         val usage = root["usage"]?.jsonObject?.let { usageObj ->
             UsageInfo(
-                promptTokens = usageObj["prompt_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
-                completionTokens = usageObj["completion_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
-                totalTokens = usageObj["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+                promptTokens = usageObj["prompt_tokens"]?.jsonPrimitive?.let { it.content.toIntOrNull() } ?: 0,
+                completionTokens = usageObj["completion_tokens"]?.jsonPrimitive?.let { it.content.toIntOrNull() } ?: 0,
+                totalTokens = usageObj["total_tokens"]?.jsonPrimitive?.let { it.content.toIntOrNull() } ?: 0,
             )
         }
 

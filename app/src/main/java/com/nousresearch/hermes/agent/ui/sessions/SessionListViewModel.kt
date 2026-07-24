@@ -54,15 +54,11 @@ class SessionListViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _sessions.value = if (currentQuery.isNotBlank()) {
-                    sessionStore.searchMessages(currentQuery)
-                        .map { msg ->
-                            sessionStore.getSession(msg.sessionId)
-                        }
-                        .filterNotNull()
+                if (currentQuery.isNotBlank()) {
+                    val results = sessionStore.searchMessages(currentQuery)
+                        .mapNotNull { msg -> sessionStore.getSession(msg.sessionId) }
                         .distinctBy { it.id }
-                } else {
-                    // listSessions() is already emitting via Flow
+                    _sessions.value = results
                 }
             } catch (e: Exception) {
                 android.util.Log.e("SessionListVM", "Failed to load sessions", e)

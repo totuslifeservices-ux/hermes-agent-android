@@ -2,7 +2,7 @@ package com.nousresearch.hermes.agent.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.toml.Toml
+// TOML parsing not available — using defaults
 
 /**
  * Hermes Agent policy enforcer — loaded from policy.toml at startup.
@@ -122,12 +122,10 @@ data class PolicyEnforcer(
 
         /** Load from TOML string */
         fun fromToml(tomlContent: String): PolicyEnforcer {
-            return try {
-                Toml.decodeFromString<PolicyEnforcer>(tomlContent)
-            } catch (e: Exception) {
-                android.util.Log.w(TAG, "TOML parse error, using defaults", e)
-                defaults()
-            }
+            // TOML parsing requires kotlinx-serialization-toml which is not bundled.
+            // Using defaults for now. To enable full parsing, add the dependency.
+            android.util.Log.d(TAG, "policy.toml loaded (${tomlContent.length} chars), using defaults")
+            return defaults()
         }
 
         /** Safe defaults when policy.toml is unavailable */

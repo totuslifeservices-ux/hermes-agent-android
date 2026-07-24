@@ -213,7 +213,7 @@ class PhoneTool : HermesTool {
                     "phoneType" to phoneTypeString(tm.phoneType),
                     "simOperator" to tm.simOperatorName,
                     "simCountry" to tm.simCountryIso,
-                    "voicemailAlphaTag" to tm.voicemailAlphaTag,
+                    
                 )
             } catch (_: SecurityException) {
                 info["network"] = mapOf("error" to "READ_PHONE_STATE permission required")

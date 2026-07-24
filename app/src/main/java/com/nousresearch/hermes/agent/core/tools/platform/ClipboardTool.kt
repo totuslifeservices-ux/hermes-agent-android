@@ -104,7 +104,7 @@ class ClipboardTool : HermesTool {
             "text" to text,
             "uri" to uri,
             "label" to description,
-            "mimeType" to clipData.description?.mimeType,
+            "mimeType" to clipData.description?.getMimeType(0),
         )
 
         return ToolResult.Success(toJson(result))
